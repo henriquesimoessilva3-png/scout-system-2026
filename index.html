@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scout System 2026</title>
-<!-- Firebase SDK (loaded from CDN — requires internet; falls back to local mode if blocked) -->
+<!-- Firebase SDK -->
 <script>window._fbLoadErrors=0;</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onerror="window._fbLoadErrors++"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onerror="window._fbLoadErrors++"></script>
@@ -30,8 +30,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 table.cal{border-collapse:collapse;font-size:11px;min-width:900px;width:100%}
 .cal th,.cal td{border:0.5px solid #e0ded4}
 .cal .col-name{position:sticky;left:0;z-index:2;background:#fff;min-width:220px;max-width:260px;padding:2px 4px 2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal .col-start,.cal .col-end{min-width:104px;padding:3px 5px;text-align:center;background:#ebf4fd;color:#0a3d6b;font-size:10px}
-.cal .col-s{min-width:58px;max-width:65px;padding:2px 3px;text-align:center}
+.cal .col-start,.cal .col-end{min-width:70px;padding:3px 5px;text-align:center;background:#ebf4fd;color:#0a3d6b;font-size:10px}
+.cal .col-s{min-width:82px;padding:2px 3px;text-align:center}
 .cal .col-s select{width:100%;border:none;background:transparent;font-size:10px;cursor:pointer;color:#1a1a18;padding:1px}
 .cal .period{width:20px;min-width:20px;height:22px;text-align:center;vertical-align:middle;font-size:7px;font-weight:500;cursor:default;padding:0}
 .cal .period.active{color:#fff}
@@ -72,6 +72,7 @@ th.hdr-col{background:#2c2c2a;color:#f1efe8;font-weight:500;padding:5px 4px;text
 .save-badge.syncing{background:#e8c84a22;color:#c89a00}
 .save-badge.synced{background:#4ae89022;color:#1a8040}
 .save-badge.error{background:#e84a4a22;color:#c00}
+.save-badge.local{background:#f0eeea;color:#888780}
 .sv-name{padding:4px 8px;font-size:12px;color:#1a1a18;min-width:220px;border:0.5px solid #e0ded4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
 .sv-col{padding:4px 6px;font-size:11px;color:#5f5e5a;border:0.5px solid #e0ded4;text-align:center;white-space:nowrap}
 .sv-dates{color:#0a3d6b;font-size:10px}
@@ -79,7 +80,7 @@ th.hdr-col{background:#2c2c2a;color:#f1efe8;font-weight:500;padding:5px 4px;text
 .sv-mhdr:nth-child(even){background:#e4e2d8}
 .sv-phdr{font-size:7px;color:#888780;background:#eeecea;padding:2px 0;text-align:center;width:20px;min-width:20px;overflow:hidden}
 .sv-phdr:nth-child(even){background:#f4f3ec}
-.date-input{border:1px solid #e0ded4;border-radius:4px;padding:2px 4px;font-size:10px;width:96px;text-align:center}
+.date-input{border:1px solid #e0ded4;border-radius:4px;padding:2px 4px;font-size:10px;width:68px;text-align:center}
 .cal thead tr:first-child th{position:sticky;top:0;z-index:4}
 .cal thead tr:nth-child(2) th{position:sticky;z-index:4}
 .cal thead tr:first-child .hdr-name{position:sticky;left:0;top:0;z-index:6}
@@ -406,12 +407,12 @@ th.hdr-col{background:#2c2c2a;color:#f1efe8;font-weight:500;padding:5px 4px;text
         <div class="modal-comp-name" id="mCompName">—</div>
         <div class="modal-comp-meta" id="mCompMeta">—</div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
     </div>
 
     <div class="modal-tabs">
-      <button class="modal-tab active" id="mTabForm" onclick="switchMTab('form')">＋ Add Player</button>
-      <button class="modal-tab" id="mTabList" onclick="switchMTab('list')">📋 Reports <span id="mRepCount" style="background:var(--gold);color:#0b0d12;border-radius:10px;padding:0 5px;font-size:.7rem;margin-left:4px">0</span></button>
+      <button class="modal-tab active" id="mTabForm" onclick="switchMTab('form')">＋ Adicionar Jogador</button>
+      <button class="modal-tab" id="mTabList" onclick="switchMTab('list')">📋 Relatórios <span id="mRepCount" style="background:var(--gold);color:#0b0d12;border-radius:10px;padding:0 5px;font-size:.7rem;margin-left:4px">0</span></button>
     </div>
 
     <div class="modal-body" id="mBody">
@@ -436,7 +437,7 @@ const SCOUT_COLORS={
 const MULTI_COLOR='#2c2c2a';
 const ALT=['#eeece9','#f4f3ec'];
 const GROUP_CLASSES={'BRASIL':'','BRASIL BASE':'g-brasil-base','AMERICA DO SUL PRO':'g-sa-pro','AMERICA DO SUL BASE':'g-sa-base','AMERICAS MUNDO':'g-mundo'};
-const GROUP_LABELS={'BRASIL':'Brazil','BRASIL BASE':'Brazil — Youth','AMERICA DO SUL PRO':'South America — Pro','AMERICA DO SUL BASE':'South America — Youth','AMERICAS MUNDO':'Americas / World'};
+const GROUP_LABELS={'BRASIL':'Brasil','BRASIL BASE':'Brasil — Base','AMERICA DO SUL PRO':'América do Sul — Pro','AMERICA DO SUL BASE':'América do Sul — Base','AMERICAS MUNDO':'Américas / Mundo'};
 
 const PERIODS=[];
 for(let m=0;m<12;m++){
@@ -446,11 +447,11 @@ for(let m=0;m<12;m++){
 }
 
 const ATTRS_GK=[
-  {key:'gk_1v1',    label:'1v1 Defending'},
-  {key:'gk_feet',   label:'Footwork'},
-  {key:'gk_dist',   label:'Distribution'},
-  {key:'gk_shot',   label:'Shot Stopping'},
-  {key:'gk_kick',   label:'Goal Kicks / Restarts'},
+  {key:'gk_1v1',   label:'1v1 Defending'},
+  {key:'gk_feet',  label:'Footwork'},
+  {key:'gk_dist',  label:'Distribution'},
+  {key:'gk_shot',  label:'Shot Stopping'},
+  {key:'gk_kick',  label:'Goal Kicks / Restarts'},
 ];
 const ATTRS_FIELD=[
   {key:'tecnica',     label:'Technique'},
@@ -480,69 +481,39 @@ let mScores={};         // current form dot scores
 /* ══════════════════════════════════════════
    STORAGE
 ══════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════
-   SEED DATA — 3 players from Copa Libertadores U20 (compId 64)
-══════════════════════════════════════════ */
 const SEED_REPORTS = {
   64: [
-    {
-      id:'seed_nannetti',
-      data:'2026-03-24', timeA:'Flamengo', timeB:'Santiago Wanderers', placar:'1-1', scout:'Gabriel',
-      nome:'Leonardo Nannetti Lopes', dob:'2007-08-21', nac:'Brasil', clube:'Flamengo',
-      pos:'GK', pe:'Left', alt:'191', fis:'Athletic', contrato:'', tm:'',
-      tmLink:'', ogolLink:'https://www.ogol.com.br/jogador/leo-nannetti/1047824',
-      agencia:'', agenciaContato:'',
-      scores:{tecnica:8,velocidade:7,fisico:9,posicion:4,decisao:7,passe:9,drible:8,aereo:9,visao:7,intensidade:7,defensivo:7,mental:7},
-      photo:null,
-      forcas:'General Saves\nAerial Exits\nBody type\n1x1 exits',
-      fraquezas:'Distribution\nFoot Work',
-      obs:'', rec:'B', prio:'Medium', nota:'8', just:''
-    },
-    {
-      id:'seed_kauan',
-      data:'2025-03-24', timeA:'Palmeiras', timeB:'Flamengo', placar:'2-2', scout:'Gabriel',
-      nome:'Kauan Lima da Cunha', dob:'2007-02-14', nac:'Brasil', clube:'Palmeiras',
-      pos:'GK', pe:'Left', alt:'195', fis:'Strong', contrato:'', tm:'',
-      tmLink:'', ogolLink:'https://www.ogol.com.br/jogador/kauan-lima/1023414',
-      agencia:'', agenciaContato:'',
-      scores:{tecnica:8,velocidade:7,fisico:7,posicion:0,decisao:7,passe:8,drible:1,aereo:8,visao:8,intensidade:9,defensivo:9,mental:9},
-      photo:null,
-      forcas:'General Saves\n1x1 exits\nBody type\nSecurity',
-      fraquezas:'Decision Making',
-      obs:'', rec:'C', prio:'Low', nota:'7', just:''
-    },
-    {
-      id:'seed_juan',
-      data:'2026-03-24', timeA:'Nacional-URU', timeB:'Palmeiras', placar:'1-0', scout:'Gabriel',
-      nome:'Juan Felipe Bianchi Chebataroff', dob:'2006-02-16', nac:'Uruguai', clube:'Nacional-URU',
-      pos:'GK', pe:'Right', alt:'192', fis:'Robust', contrato:'', tm:'',
-      tmLink:'', ogolLink:'https://www.ogol.com.br/jogador/juan-bianchi/3522843',
-      agencia:'', agenciaContato:'',
-      scores:{tecnica:9,velocidade:10,fisico:0,posicion:8,decisao:6,passe:7,drible:9,aereo:9,visao:9,intensidade:9,defensivo:10,mental:5},
-      photo:null,
-      forcas:'Bodytype\nGeneral Saves\nBrave\nStrength',
-      fraquezas:'Agility\nDistribution\nFoot Work',
-      obs:'', rec:'A', prio:'High', nota:'9', just:''
-    }
+    {id:'seed_nannetti',data:'2026-03-24',timeA:'Flamengo',timeB:'Santiago Wanderers',placar:'1-1',scout:'Gabriel',
+     nome:'Leonardo Nannetti Lopes',dob:'2007-08-21',nac:'Brasil',clube:'Flamengo',
+     pos:'GK',pe:'Left',alt:'191',fis:'Athletic',contrato:'',tm:'',tmLink:'',
+     ogolLink:'https://www.ogol.com.br/jogador/leo-nannetti/1047824',agencia:'',agenciaContato:'',
+     scores:{tecnica:8,velocidade:7,fisico:9,posicion:4,decisao:7,passe:9,drible:8,aereo:9,visao:7,intensidade:7,defensivo:7,mental:7},
+     photo:null,forcas:'General Saves\nAerial Exits\nBody type\n1x1 exits',fraquezas:'Distribution\nFoot Work',
+     obs:'',rec:'B',prio:'Medium',nota:'8',just:''},
+    {id:'seed_kauan',data:'2025-03-24',timeA:'Palmeiras',timeB:'Flamengo',placar:'2-2',scout:'Gabriel',
+     nome:'Kauan Lima da Cunha',dob:'2007-02-14',nac:'Brasil',clube:'Palmeiras',
+     pos:'GK',pe:'Left',alt:'195',fis:'Strong',contrato:'',tm:'',tmLink:'',
+     ogolLink:'https://www.ogol.com.br/jogador/kauan-lima/1023414',agencia:'',agenciaContato:'',
+     scores:{tecnica:8,velocidade:7,fisico:7,posicion:0,decisao:7,passe:8,drible:1,aereo:8,visao:8,intensidade:9,defensivo:9,mental:9},
+     photo:null,forcas:'General Saves\n1x1 exits\nBody type\nSecurity',fraquezas:'Decision Making',
+     obs:'',rec:'C',prio:'Low',nota:'7',just:''},
+    {id:'seed_juan',data:'2026-03-24',timeA:'Nacional-URU',timeB:'Palmeiras',placar:'1-0',scout:'Gabriel',
+     nome:'Juan Felipe Bianchi Chebataroff',dob:'2006-02-16',nac:'Uruguai',clube:'Nacional-URU',
+     pos:'GK',pe:'Right',alt:'192',fis:'Robust',contrato:'',tm:'',tmLink:'',
+     ogolLink:'https://www.ogol.com.br/jogador/juan-bianchi/3522843',agencia:'',agenciaContato:'',
+     scores:{tecnica:9,velocidade:10,fisico:0,posicion:8,decisao:6,passe:7,drible:9,aereo:9,visao:9,intensidade:9,defensivo:10,mental:5},
+     photo:null,forcas:'Bodytype\nGeneral Saves\nBrave\nStrength',fraquezas:'Agility\nDistribution\nFoot Work',
+     obs:'',rec:'A',prio:'High',nota:'9',just:''}
   ]
 };
 
 function seedIfEmpty(){
-  // Only seed if compId 64 has no reports yet
   Object.entries(SEED_REPORTS).forEach(([compId,players])=>{
     const id=parseInt(compId);
-    if(!REPORTS[id]||REPORTS[id].length===0){
-      REPORTS[id]=players;
-    }
+    if(!REPORTS[id]||REPORTS[id].length===0) REPORTS[id]=players;
   });
 }
 
-/* ══════════════════════════════════════════
-   FIREBASE CONFIG
-   → Replace with your own Firebase project credentials
-   → Instructions: see bottom of file
-══════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyBi4pOl1hkP8t-NcIMAhYuTGWtMcm290HE",
   authDomain:        "scout-system-2026.firebaseapp.com",
@@ -550,84 +521,55 @@ const FIREBASE_CONFIG = {
   projectId:         "scout-system-2026",
   storageBucket:     "scout-system-2026.firebasestorage.app",
   messagingSenderId: "152294931768",
-  appId:             "1:152294931768:web:91362c2bb38ad25acd55cd",
-  measurementId:     "G-5HX29LTTRK"
+  appId:             "1:152294931768:web:91362c2bb38ad25acd55cd"
 };
 
-let db = null;
-let firebaseReady = false;
+let db=null, firebaseReady=false;
 
 function initFirebase(){
-  // If Firebase SDK didn't load (e.g. file:// protocol blocks CDN scripts), go local
-  if(typeof firebase === 'undefined'){
-    console.warn('Firebase SDK not available — running in local mode (file:// or offline).');
+  if(typeof firebase==='undefined'){
     setSyncBadge('local','⚠ Local only');
-    loadDataLocal();
-    renderNav(); renderViews(); setTimeout(fixStickyTops,50);
+    loadDataLocal(); renderNav(); renderViews(); setTimeout(fixStickyTops,50);
     return;
   }
-  try {
-    if(!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === 'PASTE_YOUR_API_KEY_HERE'){
-      console.warn('Firebase not configured — running in local-only mode.');
-      setSyncBadge('local','⚠ Local only');
-      loadDataLocal();
-      renderNav(); renderViews(); setTimeout(fixStickyTops,50);
-      return;
-    }
+  try{
     firebase.initializeApp(FIREBASE_CONFIG);
-    db = firebase.database();
-
+    db=firebase.database();
     setSyncBadge('syncing','⟳ Connecting…');
-
-    // ── Real-time listener on calendar assignments ──
-    db.ref('cal').on('value', snap => {
-      const val = snap.val();
-      if(val){
-        Object.entries(val).forEach(([id, c]) => {
-          const f = DATA.find(x => x.id === parseInt(id));
-          if(f){ f.scouts = c.scouts||[]; if(c.start) f.start=c.start; if(c.end) f.end=c.end; }
-        });
-      }
-      // ── Real-time listener on reports ──
-      db.ref('reports').on('value', snapR => {
-        REPORTS = snapR.val() || {};
-        const wasEmpty = !snapR.val();
+    db.ref('cal').on('value', snap=>{
+      const val=snap.val();
+      if(val) Object.entries(val).forEach(([id,c])=>{
+        const f=DATA.find(x=>x.id===parseInt(id));
+        if(f){f.scouts=c.scouts||[];if(c.start)f.start=c.start;if(c.end)f.end=c.end;}
+      });
+      db.ref('reports').on('value', snapR=>{
+        REPORTS=snapR.val()||{};
+        const wasEmpty=!snapR.val();
         seedIfEmpty();
-        if(wasEmpty) saveData(); // persist seed to Firebase so everyone sees it
-        firebaseReady = true;
+        if(wasEmpty) saveData();
+        firebaseReady=true;
         setSyncBadge('synced','● Live');
         renderNav(); renderViews(); setTimeout(fixStickyTops,50);
-        // update open modal badge if any
-        if(currentCompId !== null){
-          const cnt = (REPORTS[currentCompId]||[]).length;
-          const el = document.getElementById('mRepCount');
-          if(el) el.textContent = cnt;
-          // if list tab is open, refresh it
-          if(currentMTab === 'list') renderModalList();
+        if(currentCompId!==null){
+          const el=document.getElementById('mRepCount');
+          if(el) el.textContent=(REPORTS[currentCompId]||[]).length;
+          if(currentMTab==='list') renderModalList();
         }
-      }, err => {
-        setSyncBadge('error','✕ DB error');
-        console.error('Firebase reports error:', err);
-      });
-    }, err => {
-      setSyncBadge('error','✕ DB error');
-      console.error('Firebase cal error:', err);
-      // fallback to local
+      }, err=>{ setSyncBadge('error','✕ DB error'); console.error(err); });
+    }, err=>{
+      setSyncBadge('error','✕ DB error'); console.error(err);
       loadDataLocal(); renderNav(); renderViews(); setTimeout(fixStickyTops,50);
     });
-
-  } catch(e) {
-    console.error('Firebase init failed:', e);
-    setSyncBadge('error','✕ Offline');
+  }catch(e){
+    console.error(e); setSyncBadge('error','✕ Offline');
     loadDataLocal(); renderNav(); renderViews(); setTimeout(fixStickyTops,50);
   }
 }
 
-function setSyncBadge(state, text){
-  const b = document.getElementById('save-badge');
+function setSyncBadge(state,text){
+  const b=document.getElementById('save-badge');
   if(!b) return;
-  b.textContent = text;
-  b.className = 'save-badge ' + state;
+  b.textContent=text; b.className='save-badge '+state;
 }
 
 function loadDataLocal(){
@@ -641,16 +583,14 @@ function loadDataLocal(){
 }
 
 function saveData(){
-  if(db && firebaseReady){
+  if(db&&firebaseReady){
     setSyncBadge('syncing','⟳ Saving…');
-    const calObj = {};
-    DATA.forEach(c => { calObj[c.id] = {scouts:c.scouts, start:c.start, end:c.end}; });
-    const updates = { cal: calObj, reports: REPORTS };
-    db.ref('/').update(updates)
-      .then(()  => setSyncBadge('synced','● Live'))
-      .catch(e  => { setSyncBadge('error','✕ Save failed'); console.error(e); });
-  } else {
-    // local fallback
+    const calObj={};
+    DATA.forEach(c=>{calObj[c.id]={scouts:c.scouts,start:c.start,end:c.end};});
+    db.ref('/').update({cal:calObj,reports:REPORTS})
+      .then(()=>setSyncBadge('synced','● Live'))
+      .catch(e=>{setSyncBadge('error','✕ Save failed');console.error(e);});
+  }else{
     try{
       localStorage.setItem('scout_cal_2026',JSON.stringify(DATA.map(c=>({id:c.id,scouts:c.scouts,start:c.start,end:c.end}))));
       localStorage.setItem('scout_reports_2026',JSON.stringify(REPORTS));
@@ -660,55 +600,33 @@ function saveData(){
 }
 
 function exportData(){
-  const payload={
-    version:1,
-    exportedAt: new Date().toISOString(),
-    cal: DATA.map(c=>({id:c.id,scouts:c.scouts,start:c.start,end:c.end})),
-    reports: REPORTS
-  };
+  const payload={version:1,exportedAt:new Date().toISOString(),cal:DATA.map(c=>({id:c.id,scouts:c.scouts,start:c.start,end:c.end})),reports:REPORTS};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;
-  a.download='scout_system_backup_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  a.href=url; a.download='scout_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
 }
 
 function importData(input){
-  const file=input.files[0];
-  if(!file) return;
+  const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       const payload=JSON.parse(e.target.result);
-      // support both raw localStorage dump and our versioned format
-      const cal=payload.cal || (payload.scout_cal_2026 && JSON.parse(payload.scout_cal_2026));
-      const reports=payload.reports || (payload.scout_reports_2026 && JSON.parse(payload.scout_reports_2026));
-      if(!cal && !reports){ alert('Invalid file — no scout data found.'); return; }
-      if(!confirm(`Import data from ${payload.exportedAt?new Date(payload.exportedAt).toLocaleString():'this file'}?\n\nThis will REPLACE all current calendar assignments and reports.`)) return;
-      if(cal){
-        cal.forEach(c=>{
-          const f=DATA.find(x=>x.id===c.id);
-          if(f){f.scouts=c.scouts||[];if(c.start)f.start=c.start;if(c.end)f.end=c.end;}
-        });
-      }
+      const cal=payload.cal||(payload.scout_cal_2026&&JSON.parse(payload.scout_cal_2026));
+      const reports=payload.reports||(payload.scout_reports_2026&&JSON.parse(payload.scout_reports_2026));
+      if(!cal&&!reports){alert('Invalid file.');return;}
+      if(!confirm('Import and replace all current data?')) return;
+      if(cal) cal.forEach(c=>{const f=DATA.find(x=>x.id===c.id);if(f){f.scouts=c.scouts||[];if(c.start)f.start=c.start;if(c.end)f.end=c.end;}});
       if(reports) REPORTS=reports;
-      saveData();
-      renderNav();
-      renderViews();
-      if(currentCompId!==null){
-        document.getElementById('mRepCount').textContent=(REPORTS[currentCompId]||[]).length;
-      }
-      alert('✓ Data imported — syncing to cloud…');
-    }catch(err){
-      alert('Error reading file: '+err.message);
-    }
-    input.value=''; // reset so same file can be re-imported if needed
+      saveData(); renderNav(); renderViews();
+      alert('✓ Data imported!');
+    }catch(err){alert('Error: '+err.message);}
+    input.value='';
   };
   reader.readAsText(file);
 }
-
 function getReports(compId){ return REPORTS[compId]||[]; }
 
 function saveReport(compId, data){
@@ -758,8 +676,8 @@ function renderNav(){
   const views=[{id:'cal',label:'Calendar'},...SCOUTS.map(s=>({id:'scout_'+s,label:s,color:SCOUT_COLORS[s].btn}))];
   nav.innerHTML=views.map(v=>`<button class="nav-btn${currentView===v.id?' active':''}" style="background:${v.color||'#3a3835'};color:#fff" onclick="switchView('${v.id}')">${v.label}</button>`).join('')
     +`<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button class="nav-btn" style="background:#3a3835;color:#e8c84a;font-size:11px" onclick="exportData()" title="Export all data as JSON">⬇ Export</button>
-        <label class="nav-btn" style="background:#3a3835;color:#8ed4a4;font-size:11px;cursor:pointer" title="Import data from JSON file">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+        <button class="nav-btn" style="background:#3a3835;color:#e8c84a;font-size:11px" onclick="exportData()">⬇ Export</button>
+        <label class="nav-btn" style="background:#3a3835;color:#8ed4a4;font-size:11px;cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
       </div>`;
 }
 
@@ -767,8 +685,7 @@ function switchView(id){currentView=id;renderNav();renderViews();}
 function renderViews(preserveScroll){
   const views=document.getElementById('views');
   const wrap=document.querySelector('.scroll-wrap');
-  const sx=wrap?wrap.scrollLeft:0;
-  const sy=wrap?wrap.scrollTop:0;
+  const sx=wrap?wrap.scrollLeft:0, sy=wrap?wrap.scrollTop:0;
   if(currentView==='cal'){views.innerHTML=renderCal();setTimeout(()=>{fixStickyTops();if(preserveScroll){const w=document.querySelector('.scroll-wrap');if(w){w.scrollLeft=sx;w.scrollTop=sy;}}},10);}
   else if(currentView==='resumo'){views.innerHTML=renderResumo();setTimeout(fixStickyTops,10);}
   else{const s=currentView.replace('scout_','');views.innerHTML=renderScoutView(s);setTimeout(()=>{fixStickyTops();if(preserveScroll){const w=document.querySelector('.scroll-wrap');if(w){w.scrollLeft=sx;w.scrollTop=sy;}}},10);}
@@ -825,22 +742,22 @@ function renderCal(){
 
   return `<div class="view active">
     <div class="toolbar">
-      <div><h1>Coverage Calendar 2026</h1>
-      <p>Click 📋 next to any competition to add player reports</p></div>
+      <div><h1>Calendário de Cobertura 2026</h1>
+      <p>Clique em 📋 ao lado de qualquer campeonato para adicionar relatórios de jogadores</p></div>
       <div class="legend">
         ${SCOUTS.map(s=>`<span class="leg"><span class="leg-dot" style="background:${SCOUT_COLORS[s].soft}"></span>${s}</span>`).join('')}
         <span class="leg"><span class="leg-dot" style="background:#2c2c2a"></span>2+ scouts</span>
-        <span class="leg"><span class="leg-dot" style="background:#e8c84a;border-radius:50%"></span>Has reports</span>
+        <span class="leg"><span class="leg-dot" style="background:#e8c84a;border-radius:50%"></span>Com relatório</span>
       </div>
-      <span class="save-badge" id="save-badge">Auto-saved</span>
+      <span class="save-badge" id="save-badge">Auto-salvo</span>
     </div>
     <div class="scroll-wrap">
     <table class="cal">
       <thead>
         <tr>
-          <th class="hdr-name" rowspan="2">Competition</th>
-          <th class="hdr-col" rowspan="2">Start</th>
-          <th class="hdr-col" rowspan="2">End</th>
+          <th class="hdr-name" rowspan="2">Campeonato</th>
+          <th class="hdr-col" rowspan="2">Início</th>
+          <th class="hdr-col" rowspan="2">Fim</th>
           ${SCOUTS.map((s,i)=>`<th class="hdr-col" rowspan="2" style="background:#484038">Scout ${i+1}</th>`).join('')}
           ${monthHdrs}
         </tr>
@@ -871,7 +788,7 @@ function renderScoutView(scout){
   }).join('');
   let bodyRows='';
   if(!assigned.length){
-    bodyRows=`<tr><td colspan="${4+PERIODS.length}" class="empty-state">No competitions assigned to ${scout} yet.</td></tr>`;
+    bodyRows=`<tr><td colspan="${4+PERIODS.length}" class="empty-state">Nenhuma competição atribuída a ${scout} ainda.</td></tr>`;
   } else {
     bodyRows=assigned.map((comp,ri)=>{
       const active=PERIODS.map(p=>isActive(comp,p));
@@ -884,10 +801,10 @@ function renderScoutView(scout){
       return `<tr style="background:${rowbg}">
         <td class="sv-name">
           <span>${comp.name}</span>
-          <button class="btn-report${reps>0?' has-reports':''}" onclick="openModal(${comp.id})" title="Reports for ${comp.name}" style="margin-left:6px">${reps>0?`📋 <span class='report-count'>${reps}</span>`:'📋'}</button>
+          <button class="btn-report${reps>0?' has-reports':''}" onclick="openModal(${comp.id})" style="margin-left:6px">${reps>0?`📋 <span class='report-count'>${reps}</span>`:'📋'}</button>
         </td>
         <td class="sv-col">${comp.country}</td>
-        <td class="sv-col"><span class="level-${comp.level==='Base'?'base':'pro'}">${comp.level==='Base'?'Youth':'Professional'}</span></td>
+        <td class="sv-col"><span class="level-${comp.level==='Base'?'base':'pro'}">${comp.level}</span></td>
         <td class="sv-col sv-dates">${comp.start?comp.start.slice(5).replace('-','/'):'?'} → ${comp.end?comp.end.slice(5).replace('-','/'):'?'}</td>
         ${periodCells}
       </tr>`;
@@ -896,17 +813,17 @@ function renderScoutView(scout){
   return `<div class="view active">
     <div class="toolbar">
       <div style="width:14px;height:14px;border-radius:50%;background:${color.btn};flex-shrink:0"></div>
-      <div><h1>${scout} — Assigned Competitions 2026</h1>
-      <p>${assigned.length} competition(s) assigned · Click 📋 to view or add player reports</p></div>
+      <div><h1>${scout} — Competições Atribuídas 2026</h1>
+      <p>${assigned.length} competição(ões) atribuída(s)</p></div>
     </div>
     <div class="scroll-wrap">
     <table class="cal" style="min-width:800px">
       <thead>
         <tr>
-          <th class="hdr-name" rowspan="2" style="min-width:220px">Competition</th>
-          <th class="hdr-col" rowspan="2" style="min-width:90px">Country</th>
-          <th class="hdr-col" rowspan="2" style="min-width:80px">Level</th>
-          <th class="hdr-col" rowspan="2" style="min-width:110px">Period</th>
+          <th class="hdr-name" rowspan="2" style="min-width:220px">Campeonato</th>
+          <th class="hdr-col" rowspan="2" style="min-width:90px">País</th>
+          <th class="hdr-col" rowspan="2" style="min-width:80px">Nível</th>
+          <th class="hdr-col" rowspan="2" style="min-width:110px">Período</th>
           ${monthHdrs}
         </tr>
         <tr>${periodHdrs}</tr>
@@ -941,11 +858,11 @@ function renderResumo(){
   }).join('');
   const gP=calcs.reduce((a,c)=>a+c.totPro,0),gB=calcs.reduce((a,c)=>a+c.totBase,0);
   return `<div class="view active">
-    <div class="toolbar"><div><h1>Coverage Summary — 2026</h1><p>Scouts in rows · Months in columns</p></div></div>
+    <div class="toolbar"><div><h1>Resumo de Cobertura — 2026</h1><p>Scouts nas linhas · Meses nas colunas</p></div></div>
     <div class="resumo-wrap"><table class="resumo-table">
-      <thead><tr><th rowspan="2" style="background:#2c2c2a;color:#f1efe8">Scout</th><th colspan="2" style="background:#444441;color:#f1efe8">Year Total</th>${monthHdrs}</tr>
-      <tr><th class="sub-hdr" style="background:#e0ece8;color:#27500a">Pro</th><th class="sub-hdr" style="background:#d8e8f5;color:#0c447c">Youth</th>${subHdrs}</tr></thead>
-      <tbody>${rows}<tr><td class="r-grand" style="text-align:left;padding-left:10px">Grand Total</td><td class="r-grand">${gP||''}</td><td class="r-grand">${gB||''}</td>${grandMonths}</tr></tbody>
+      <thead><tr><th rowspan="2" style="background:#2c2c2a;color:#f1efe8">Scout</th><th colspan="2" style="background:#444441;color:#f1efe8">Total Ano</th>${monthHdrs}</tr>
+      <tr><th class="sub-hdr" style="background:#e0ece8;color:#27500a">Pro</th><th class="sub-hdr" style="background:#d8e8f5;color:#0c447c">Base</th>${subHdrs}</tr></thead>
+      <tbody>${rows}<tr><td class="r-grand" style="text-align:left;padding-left:10px">Total Geral</td><td class="r-grand">${gP||''}</td><td class="r-grand">${gB||''}</td>${grandMonths}</tr></tbody>
     </table></div></div>`;
 }
 
@@ -997,9 +914,9 @@ function renderModalForm(preload){
   const currentPos=p.pos||'';
   const attrs=getAttrs(currentPos);
   attrs.forEach(a=>mScores[a.key]=0);
-  if(p.scores) Object.keys(p.scores).forEach(k=>mScores[k]=p.scores[k]);
+  if(p.scores) Object.keys(p.scores).forEach(k=>{ if(k in mScores || true) mScores[k]=p.scores[k]||0; });
 
-  function buildAttrHtml(attrList, scores){
+  function buildAttrHtml(attrList,scores){
     return attrList.map(a=>`
       <div class="attr-row">
         <div class="attr-row-top">
@@ -1009,8 +926,7 @@ function renderModalForm(preload){
         <div class="attr-dots" id="mdots_${a.key}">
           ${Array.from({length:10},(_,i)=>`<div class="dot${scores&&scores[a.key]>i?' on'+(scores[a.key]<=3?' low':scores[a.key]<=6?' mid':' hi'):''}" data-k="${a.key}" data-v="${i+1}"></div>`).join('')}
         </div>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
   document.getElementById('mBody').innerHTML=`
@@ -1026,7 +942,6 @@ function renderModalForm(preload){
         </div>
       </div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head"><span>👤</span><h3>Player Profile</h3></div>
       <div class="fsec-body">
@@ -1082,7 +997,6 @@ function renderModalForm(preload){
         </div>
       </div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head"><span>🏢</span><h3>Agency</h3></div>
       <div class="fsec-body">
@@ -1092,7 +1006,6 @@ function renderModalForm(preload){
         </div>
       </div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head"><span>📷</span><h3>Photo</h3></div>
       <div class="fsec-body">
@@ -1104,27 +1017,24 @@ function renderModalForm(preload){
         </div>
       </div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head">
         <span id="mAttrsIcon">${currentPos==='GK'?'🧤':'⚽'}</span>
         <h3 id="mAttrsTitle">Technical Attributes${currentPos==='GK'?' — Goalkeeper':''} — Score 1 to 10</h3>
-        <span style="margin-left:auto;font-size:.65rem;color:var(--muted);font-style:italic">Click same dot again or right-click to clear</span>
+        <span style="margin-left:auto;font-size:.65rem;color:var(--muted);font-style:italic">Click same dot or right-click to clear</span>
       </div>
-      <div class="fsec-body"><div class="attrs-grid" id="mAttrs">${buildAttrHtml(attrs, p.scores)}</div></div>
+      <div class="fsec-body"><div class="attrs-grid" id="mAttrs">${buildAttrHtml(attrs,p.scores)}</div></div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head"><span>📋</span><h3>Analysis</h3></div>
       <div class="fsec-body">
         <div class="fg fg2">
           <div class="fl"><label>Strengths</label><textarea id="mForcas" placeholder="Key strengths observed…">${p.forcas||''}</textarea></div>
           <div class="fl"><label>Weaknesses</label><textarea id="mFraquezas" placeholder="Areas to develop…">${p.fraquezas||''}</textarea></div>
-          <div class="fl s2"><label>General Notes</label><textarea id="mObs" placeholder="Tactical context, behaviour, leadership, pressure…" style="min-height:80px">${p.obs||''}</textarea></div>
+          <div class="fl s2"><label>General Notes</label><textarea id="mObs" placeholder="Tactical context, behaviour…" style="min-height:80px">${p.obs||''}</textarea></div>
         </div>
       </div>
     </div>
-
     <div class="fsec">
       <div class="fsec-head"><span>🎯</span><h3>Recommendation</h3></div>
       <div class="fsec-body">
@@ -1145,19 +1055,17 @@ function renderModalForm(preload){
             </select>
           </div>
           <div class="fl"><label>Overall Score (0–10)</label><input id="mNota" type="number" placeholder="7.5" min="0" max="10" step="0.5" value="${p.nota||''}"></div>
-          <div class="fl s3"><label>Justification</label><textarea id="mJust" placeholder="Justify your final recommendation…">${p.just||''}</textarea></div>
+          <div class="fl s3"><label>Justification</label><textarea id="mJust" placeholder="Justify your recommendation…">${p.just||''}</textarea></div>
         </div>
       </div>
     </div>
-
     <div class="form-actions">
       <button class="dbtn dbtn-ghost" onclick="switchMTab('list')">← Cancel</button>
       <button class="dbtn dbtn-save" onclick="submitReport()">Save Report ✓</button>
     </div>
   `;
 
-  // wire dot logic
-  function applyDotScore(k, newVal){
+  function applyDotScore(k,newVal){
     mScores[k]=newVal;
     const row=document.getElementById('mdots_'+k);
     if(!row) return;
@@ -1169,27 +1077,26 @@ function renderModalForm(preload){
     if(sc) sc.textContent=newVal===0?'—':newVal;
   }
 
-  document.getElementById('mAttrs').addEventListener('click', e=>{
+  document.getElementById('mAttrs').addEventListener('click',e=>{
     const dot=e.target.closest('.dot');
     if(!dot) return;
     const k=dot.dataset.k, v=parseInt(dot.dataset.v);
     applyDotScore(k, mScores[k]===v ? 0 : v);
   });
 
-  document.getElementById('mAttrs').addEventListener('contextmenu', e=>{
+  document.getElementById('mAttrs').addEventListener('contextmenu',e=>{
     const dot=e.target.closest('.dot');
     if(!dot) return;
     e.preventDefault();
     applyDotScore(dot.dataset.k, 0);
   });
 
-  // photo
   document.getElementById('mFoto').addEventListener('change',function(){
-    const file=this.files[0];if(!file)return;
+    const file=this.files[0]; if(!file) return;
     const r=new FileReader();
     r.onload=e=>{
       const img=document.getElementById('mPhotoPreview');
-      img.src=e.target.result;img.style.display='block';
+      img.src=e.target.result; img.style.display='block';
       window._mPhoto=e.target.result;
     };
     r.readAsDataURL(file);
@@ -1198,15 +1105,10 @@ function renderModalForm(preload){
   window._mPhoto=p.photo||null;
 }
 
-/* ══════════════════════════════════════════
-   POSITION CHANGE → swap attributes
-══════════════════════════════════════════ */
 function onPosChange(pos){
   const newAttrs=getAttrs(pos);
-  // reset scores for new attr set
   mScores={};
   newAttrs.forEach(a=>mScores[a.key]=0);
-  // rebuild attrs grid
   const grid=document.getElementById('mAttrs');
   if(!grid) return;
   grid.innerHTML=newAttrs.map(a=>`
@@ -1218,24 +1120,17 @@ function onPosChange(pos){
       <div class="attr-dots" id="mdots_${a.key}">
         ${Array.from({length:10},(_,i)=>`<div class="dot" data-k="${a.key}" data-v="${i+1}"></div>`).join('')}
       </div>
-    </div>
-  `).join('');
-  // update header
+    </div>`).join('');
   const icon=document.getElementById('mAttrsIcon');
   const title=document.getElementById('mAttrsTitle');
   if(icon) icon.textContent=pos==='GK'?'🧤':'⚽';
   if(title) title.textContent=`Technical Attributes${pos==='GK'?' — Goalkeeper':''} — Score 1 to 10`;
 }
-
-/* ══════════════════════════════════════════
-   SUBMIT
-══════════════════════════════════════════ */
 function gv(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
 
 function submitReport(){
   const nome=gv('mNome');
   if(!nome){ alert('Please enter the player name.'); return; }
-
   const rep={
     id: editingReportId || ('r'+Date.now()),
     data:gv('mData'), timeA:gv('mTimeA'), timeB:gv('mTimeB'),
@@ -1251,7 +1146,6 @@ function submitReport(){
     obs:gv('mObs'), rec:gv('mRec'), prio:gv('mPrio'),
     nota:gv('mNota'), just:gv('mJust'),
   };
-
   saveReport(currentCompId, rep);
   editingReportId=null;
   window._mPhoto=null;
@@ -1268,9 +1162,9 @@ function renderModalList(){
     document.getElementById('mBody').innerHTML=`
       <div class="rep-list-empty">
         <div class="rl-icon">📋</div>
-        <p>No players reported yet</p>
+        <p>Nenhum jogador reportado ainda</p>
         <br>
-        <button class="dbtn dbtn-save" onclick="switchMTab('form')" style="margin:0 auto">＋ Add Player</button>
+        <button class="dbtn dbtn-save" onclick="switchMTab('form')" style="margin:0 auto">＋ Adicionar Jogador</button>
       </div>`;
     return;
   }
@@ -1278,7 +1172,7 @@ function renderModalList(){
   const html=reps.map(r=>buildReportCard(r)).join('');
   document.getElementById('mBody').innerHTML=`
     <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
-      <button class="dbtn dbtn-save" onclick="switchMTab('form')">＋ New Player</button>
+      <button class="dbtn dbtn-save" onclick="switchMTab('form')">＋ Novo Jogador</button>
     </div>
     ${html}
   `;
@@ -1289,13 +1183,10 @@ function buildReportCard(r){
   const calcAge=s=>{if(!s)return'';const d=new Date(s+'T12:00:00'),t=new Date();let a=t.getFullYear()-d.getFullYear();if(t.getMonth()-d.getMonth()<0||(t.getMonth()-d.getMonth()===0&&t.getDate()<d.getDate()))a--;return`${a}a`};
   const barColor=n=>n<=3?'#e84a4a':n<=6?'#e8a44a':n<=8?'#e8c84a':'#4ae890';
   const recLabel={A:'✅ A — Sign now',B:'🔵 B — Monitor',C:'🟡 C — Watch again',D:'🔴 D — Not rec.'};
-
   const matchLine=r.timeA&&r.timeB?`${r.timeA} <span style="color:var(--muted);margin:0 .25rem">vs</span> ${r.timeB}`:(r.timeA||r.timeB||'');
-
   const photoHtml=r.photo
     ?`<img src="${r.photo}" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;filter:grayscale(15%) contrast(1.05)">`
     :`<div class="rcard-photo-ph">👤</div>`;
-
   const allAttrs=[...ATTRS_GK,...ATTRS_FIELD];
   const filledAttrs=allAttrs.filter(a=>r.scores&&r.scores[a.key]>0);
   const attrsHtml=filledAttrs.length?`
@@ -1304,28 +1195,21 @@ function buildReportCard(r){
       <div class="rcard-attr-grid">
         ${filledAttrs.map(a=>`
           <div class="rcard-attr">
-            <div class="rcard-attr-top">
-              <span class="rcard-attr-name">${a.label}</span>
-              <span class="rcard-attr-num">${r.scores[a.key]}</span>
-            </div>
+            <div class="rcard-attr-top"><span class="rcard-attr-name">${a.label}</span><span class="rcard-attr-num">${r.scores[a.key]}</span></div>
             <div class="rcard-attr-bar"><div class="rcard-attr-fill" style="width:${r.scores[a.key]*10}%;background:${barColor(r.scores[a.key])}"></div></div>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
     </div>`:'';
-
   const swHtml=(r.forcas||r.fraquezas)?`
     <div class="rcard-sw">
       <div class="rcard-sw-col sw-s"><div class="rcard-sw-title">Strengths</div><div class="rcard-sw-text">${r.forcas||'<span style="opacity:.3">—</span>'}</div></div>
       <div class="rcard-sw-col sw-w"><div class="rcard-sw-title">Weaknesses</div><div class="rcard-sw-text">${r.fraquezas||'<span style="opacity:.3">—</span>'}</div></div>
     </div>`:'';
-
   const notesHtml=(r.obs||r.just)?`
     <div class="rcard-notes">
       <div class="rcard-notes-title">Notes</div>
       <div class="rcard-notes-text">${[r.obs,r.just].filter(Boolean).join('<br><br>')}</div>
     </div>`:'';
-
   const meta=[
     {l:'D.O.B', v:r.dob?`${fmtDate(r.dob)} (${calcAge(r.dob)})`:'—'},
     {l:'Nat.', v:r.nac||'—'},
@@ -1336,13 +1220,11 @@ function buildReportCard(r){
     ...(r.agencia?[{l:'Agency',v:r.agencia}]:[]),
     ...(r.agenciaContato?[{l:'Contact',v:r.agenciaContato}]:[]),
   ];
-
   const linksHtml=(r.tmLink||r.ogolLink)?`
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--card2)">
       ${r.tmLink?`<a href="${r.tmLink}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);text-decoration:none;border:1px solid rgba(58,123,213,.3);border-radius:4px;padding:.2rem .6rem">🔗 Transfermarkt ↗</a>`:''}
       ${r.ogolLink?`<a href="${r.ogolLink}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:4px;padding:.2rem .6rem">🔗 Ogol ↗</a>`:''}
     </div>`:'';
-
   return `
     <div class="rcard" id="rc_${r.id}">
       <div class="rcard-header">
@@ -1390,7 +1272,7 @@ function buildReportCard(r){
     </div>`;
 }
 
-function editReport(repId){
+function editReport
   const rep=getReports(currentCompId).find(r=>r.id===repId);
   if(!rep) return;
   editingReportId=repId;
@@ -1444,30 +1326,10 @@ window.addEventListener('resize',fixStickyTops);
 /* ══════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════ */
-// Use setTimeout to let all inline scripts settle after parse
 setTimeout(function(){
   renderNav();
   initFirebase();
 }, 0);
 </script>
-<!--
-═══════════════════════════════════════════════════════════════
-  HOW TO SET UP FIREBASE (free — takes ~5 minutes)
-═══════════════════════════════════════════════════════════════
-
-1. Go to https://console.firebase.google.com
-2. Click "Create a project" → give it any name (e.g. "scout-system-2026")
-3. Disable Google Analytics if you want, click Continue
-4. In the left sidebar click "Build" → "Realtime Database"
-5. Click "Create Database" → choose a region → start in TEST MODE (allows all reads/writes)
-6. In the left sidebar click the gear ⚙ → "Project settings"
-7. Scroll to "Your apps" → click the </> (Web) icon → register an app (any nickname)
-8. Copy the firebaseConfig object values into the FIREBASE_CONFIG block at the top of this file
-9. Save and deploy to GitHub Pages — everyone who opens the site now shares the same data in real time
-
-Note: "Test mode" is open to everyone. If you want to restrict access later,
-set up Firebase Authentication and update the database rules.
-═══════════════════════════════════════════════════════════════
--->
 </body>
 </html>
