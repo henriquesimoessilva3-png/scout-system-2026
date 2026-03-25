@@ -1492,12 +1492,40 @@ function updateScout(id,slot,value){
   while(comp.scouts.length<=slot)comp.scouts.push('');
   comp.scouts[slot]=value;
   comp.scouts=comp.scouts.filter((s,i)=>i<=Math.max(...comp.scouts.map((_,i)=>comp.scouts[i]?i:-1)));
-  saveData();renderViews(true);
+  saveData();
+  refreshCalRow(id);
 }
 
 function updateDate(id,field,value){
   const comp=DATA.find(c=>c.id===id);
-  if(comp){comp[field]=value;saveData();renderViews(true);}
+  if(!comp)return;
+  comp[field]=value;
+  saveData();
+  refreshCalRow(id);
+}
+
+// Surgically update only the period cells of one row — no scroll jump
+function refreshCalRow(id){
+  const comp=DATA.find(c=>c.id===id);if(!comp)return;
+  const row=document.getElementById('row-'+id);if(!row)return;
+
+  const assigned=comp.scouts.filter(s=>s&&s!=='');
+  const color=cellColor(comp);
+  const textCol=assigned.length>1?'#fff':(assigned[0]?SCOUT_COLORS[assigned[0]]?.text||'#1a1a18':'#1a1a18');
+  const initials=assigned.length>1?assigned.map(s=>s[0]).join(''):(assigned[0]?assigned[0][0]:'');
+
+  // Update all period cells in this row
+  const periodCells=row.querySelectorAll('td.period');
+  periodCells.forEach((td,pi)=>{
+    const p=PERIODS[pi];
+    const act=isActive(comp,p);
+    const bg=act&&color?color:ALT[p.m%2];
+    const fc=act&&color?textCol:'transparent';
+    td.style.background=bg;
+    td.style.color=fc;
+    td.className='period'+(act?' active':'')+(((pi+1)%3===0)?' month-end':'');
+    td.textContent=act&&assigned.length?initials:act?'·':'';
+  });
 }
 
 /* ══════════════════════════════════════════
