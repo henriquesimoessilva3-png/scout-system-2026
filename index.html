@@ -312,10 +312,10 @@ th.hdr-col{background:#2c2c2a;color:#f1efe8;font-weight:500;padding:5px 4px;text
 .rcard-pos{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
 
 .rcard-meta{padding:.7rem;border-top:1px solid var(--border)}
-.rcard-meta-row{display:flex;align-items:baseline;gap:.3rem;margin-bottom:.3rem}
 .rcard-meta-row:last-child{margin-bottom:0}
 .rcard-meta-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:48px;flex-shrink:0}
-.rcard-meta-val{font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:600;color:var(--text);line-height:1.2}
+.rcard-meta-val{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:600;color:var(--text);line-height:1.3;word-break:break-all;overflow-wrap:break-word;min-width:0}
+.rcard-meta-row{display:flex;align-items:baseline;gap:.3rem;margin-bottom:.3rem;overflow:hidden}
 .rcard-meta-val.gld{color:var(--gold)}
 
 /* Right col */
@@ -1217,13 +1217,24 @@ function buildReportCard(r){
     {l:'Height', v:r.alt?`${r.alt} cm`:'—'},
     {l:'Body', v:r.fis||'—'},
     ...(r.tm?[{l:'TM Val.',v:r.tm,gld:true}]:[]),
-    ...(r.agencia?[{l:'Agency',v:r.agencia}]:[]),
-    ...(r.agenciaContato?[{l:'Contact',v:r.agenciaContato}]:[]),
   ];
-  const linksHtml=(r.tmLink||r.ogolLink)?`
+  function isUrl(s){ try{ return s&&(s.startsWith('http://')||s.startsWith('https://')||s.startsWith('www.')); }catch(e){return false;} }
+  function fmtAgencia(s){ if(!s) return '';
+    const href=s.startsWith('www.')?'https://'+s:s;
+    return isUrl(s)?`<a href="${href}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);text-decoration:none;border:1px solid rgba(232,200,74,.3);border-radius:4px;padding:.2rem .6rem">🏢 ${s} ↗</a>`
+    :`<span style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:.2rem .6rem">🏢 ${s}</span>`;
+  }
+  function fmtContact(s){ if(!s) return '';
+    const href=s.startsWith('www.')?'https://'+s:s;
+    return isUrl(s)?`<a href="${href}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);text-decoration:none;border:1px solid rgba(232,200,74,.3);border-radius:4px;padding:.2rem .6rem">📞 ${s} ↗</a>`
+    :`<span style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:.2rem .6rem">📞 ${s}</span>`;
+  }
+  const linksHtml=(r.tmLink||r.ogolLink||r.agencia||r.agenciaContato)?`
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--card2)">
       ${r.tmLink?`<a href="${r.tmLink}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);text-decoration:none;border:1px solid rgba(58,123,213,.3);border-radius:4px;padding:.2rem .6rem">🔗 Transfermarkt ↗</a>`:''}
       ${r.ogolLink?`<a href="${r.ogolLink}" target="_blank" style="font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:4px;padding:.2rem .6rem">🔗 Ogol ↗</a>`:''}
+      ${fmtAgencia(r.agencia)}
+      ${fmtContact(r.agenciaContato)}
     </div>`:'';
   return `
     <div class="rcard" id="rc_${r.id}">
@@ -1272,7 +1283,7 @@ function buildReportCard(r){
     </div>`;
 }
 
-function editReport
+function editReport(repId){
   const rep=getReports(currentCompId).find(r=>r.id===repId);
   if(!rep) return;
   editingReportId=repId;
