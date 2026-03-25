@@ -465,7 +465,7 @@ const SCOUT_COLORS={
   Brunno:{soft:'#F5C86A',strong:'#D07000',text:'#7A3D00',btn:'#E8940A'},
   Cristian:{soft:'#90C4F0',strong:'#1562B8',text:'#042C53',btn:'#1562B8'},
   Gabriel:{soft:'#8ED4A4',strong:'#1A8038',text:'#04342C',btn:'#1A8038'},
-  Humberto:{soft:'#C4A4E8',strong:'#7030A8',text:'#26215C',btn:'#7030A8'}
+  Humberto:{soft:'#D4909A',strong:'#7a1830',text:'#3d0010',btn:'#8B1A2E'}
 };
 const MULTI_COLOR='#2c2c2a';
 const ALT=['#eeece9','#f4f3ec'];
@@ -573,13 +573,24 @@ function initFirebase(){
         const wasEmpty=!snapR.val();
         seedIfEmpty();
         if(wasEmpty) saveData();
-        firebaseReady=true;
         setSyncBadge('synced','● Live');
-        renderNav();renderViews();setTimeout(fixStickyTops,50);
-        if(currentCompId!==null){
-          const el=document.getElementById('mRepCount');
-          if(el) el.textContent=(REPORTS[currentCompId]||[]).length;
-          if(currentMTab==='list') renderModalList();
+        if(!firebaseReady){
+          // First load — full render
+          firebaseReady=true;
+          renderNav();renderViews();setTimeout(fixStickyTops,50);
+        } else {
+          // Subsequent update (e.g. another scout made a change)
+          // Only refresh report badges surgically — no full re-render
+          Object.keys(REPORTS).forEach(cid=>updateReportBadge(parseInt(cid)));
+          if(currentCompId!==null){
+            const el=document.getElementById('mRepCount');
+            if(el) el.textContent=(REPORTS[currentCompId]||[]).length;
+            if(currentMTab==='list') renderModalList();
+          }
+          // If shortlist is open, refresh it in place
+          if(currentView==='shortlist'){
+            document.getElementById('views').innerHTML=renderShortlist();
+          }
         }
       },err=>{setSyncBadge('error','✕ DB error');console.error(err);});
     },err=>{
@@ -699,8 +710,8 @@ function cellColor(comp){
 
 function renderNav(){
   const nav=document.getElementById('nav');
-  const views=[{id:'cal',label:'Calendar'},{id:'shortlist',label:'⭐ Shortlist',color:'#5a3a8a'},...SCOUTS.map(s=>({id:'scout_'+s,label:s,color:SCOUT_COLORS[s].btn}))];
-  nav.innerHTML=views.map(v=>`<button class="nav-btn${currentView===v.id?' active':''}" style="background:${v.color||'#3a3835'};color:#fff" onclick="switchView('${v.id}')">${v.label}</button>`).join('')
+  const views=[{id:'cal',label:'Calendar'},{id:'shortlist',label:'⭐ Shortlist',color:'#6b3fa0'},...SCOUTS.map(s=>({id:'scout_'+s,label:s,color:SCOUT_COLORS[s].btn}))];
+  nav.innerHTML=views.map((v,i)=>(i===1?'<span style="width:8px;display:inline-block"></span>':'')+`<button class="nav-btn${currentView===v.id?' active':''}" style="background:${v.color||'#3a3835'};color:#fff" onclick="switchView('${v.id}')">${v.label}</button>`).join('')
     +`<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <button class="nav-btn" style="background:#3a3835;color:#e8c84a;font-size:11px" onclick="exportData()">⬇ Export</button>
         <label class="nav-btn" style="background:#3a3835;color:#8ed4a4;font-size:11px;cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
