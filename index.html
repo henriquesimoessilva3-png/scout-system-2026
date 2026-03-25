@@ -389,6 +389,40 @@ th.hdr-col{background:#2c2c2a;color:#f1efe8;font-weight:500;padding:5px 4px;text
   body{background:#0b0d12}
   .rcard{page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* ═══════════════════ SHORTLIST VIEW ═══════════════════ */
+.shortlist-wrap{padding:12px;overflow-x:auto}
+.shortlist-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.shortlist-filter{padding:4px 10px;border:0.5px solid #e0ded4;border-radius:6px;font-size:11px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
+.shortlist-filter.active{background:#2c2c2a;color:#fff;border-color:#2c2c2a}
+.shortlist-filter:hover:not(.active){background:#f0eeea}
+.shortlist-search{padding:4px 10px;border:0.5px solid #e0ded4;border-radius:6px;font-size:11px;background:#fff;outline:none;min-width:160px}
+.shortlist-search:focus{border-color:#3a7bd5}
+.shortlist-count{font-size:11px;color:#888780;margin-left:auto}
+table.sl{border-collapse:collapse;font-size:11px;min-width:900px;width:100%}
+table.sl th,table.sl td{border:0.5px solid #e0ded4;padding:0}
+table.sl th{background:#2c2c2a;color:#f1efe8;font-weight:500;font-size:10px;padding:5px 8px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:2}
+table.sl th:hover{background:#3a3835}
+table.sl th.sort-asc::after{content:' ▲';font-size:8px;opacity:.8}
+table.sl th.sort-desc::after{content:' ▼';font-size:8px;opacity:.8}
+table.sl td{padding:4px 8px;vertical-align:middle;background:#fff}
+table.sl tr:nth-child(even) td{background:#f9f8f4}
+table.sl tr:hover td{background:#f0eeea;cursor:pointer}
+.sl-photo{width:32px;height:38px;border-radius:3px;object-fit:cover;object-position:top;display:block}
+.sl-photo-ph{width:32px;height:38px;border-radius:3px;background:#e8e6dc;display:flex;align-items:center;justify-content:center;font-size:14px;opacity:.4}
+.sl-name{font-weight:500;font-size:12px;color:#1a1a18;white-space:nowrap}
+.sl-sub{font-size:10px;color:#888780}
+.sl-pos{display:inline-block;background:#2c2c2a;color:#e8c84a;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;letter-spacing:.06em}
+.sl-score{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px}
+.sl-rec{display:inline-block;border-radius:3px;padding:2px 6px;font-size:9px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
+.sl-rec.A{background:rgba(74,232,144,.15);color:#1a8040;border:1px solid rgba(74,232,144,.3)}
+.sl-rec.B{background:rgba(58,123,213,.15);color:#1562B8;border:1px solid rgba(58,123,213,.3)}
+.sl-rec.C{background:rgba(232,200,74,.15);color:#b8860b;border:1px solid rgba(232,200,74,.3)}
+.sl-rec.D{background:rgba(232,74,74,.15);color:#c00;border:1px solid rgba(232,74,74,.3)}
+.sl-prio{font-size:10px;color:#5f5e5a}
+.sl-prio.High{color:#c00;font-weight:600}
+.sl-prio.Medium{color:#b8860b;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -665,7 +699,7 @@ function cellColor(comp){
 
 function renderNav(){
   const nav=document.getElementById('nav');
-  const views=[{id:'cal',label:'Calendar'},...SCOUTS.map(s=>({id:'scout_'+s,label:s,color:SCOUT_COLORS[s].btn}))];
+  const views=[{id:'cal',label:'Calendar'},{id:'shortlist',label:'⭐ Shortlist',color:'#5a3a8a'},...SCOUTS.map(s=>({id:'scout_'+s,label:s,color:SCOUT_COLORS[s].btn}))];
   nav.innerHTML=views.map(v=>`<button class="nav-btn${currentView===v.id?' active':''}" style="background:${v.color||'#3a3835'};color:#fff" onclick="switchView('${v.id}')">${v.label}</button>`).join('')
     +`<div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <button class="nav-btn" style="background:#3a3835;color:#e8c84a;font-size:11px" onclick="exportData()">⬇ Export</button>
@@ -680,6 +714,7 @@ function renderViews(preserveScroll){
   const sx=wrap?wrap.scrollLeft:0,sy=wrap?wrap.scrollTop:0;
   if(currentView==='cal'){views.innerHTML=renderCal();setTimeout(()=>{fixStickyTops();if(preserveScroll){const w=document.querySelector('.scroll-wrap');if(w){w.scrollLeft=sx;w.scrollTop=sy;}}},10);}
   else if(currentView==='resumo'){views.innerHTML=renderResumo();setTimeout(fixStickyTops,10);}
+  else if(currentView==='shortlist'){views.innerHTML=renderShortlist();setTimeout(fixStickyTops,10);}
   else{const s=currentView.replace('scout_','');views.innerHTML=renderScoutView(s);setTimeout(()=>{fixStickyTops();if(preserveScroll){const w=document.querySelector('.scroll-wrap');if(w){w.scrollLeft=sx;w.scrollTop=sy;}}},10);}
 }
 
@@ -824,6 +859,166 @@ function renderScoutView(scout){
     </table>
     </div></div>`;
 }
+
+/* ══════════════════════════════════════════
+   SHORTLIST — aggregated view of all players
+══════════════════════════════════════════ */
+let slSort={col:'nota',dir:'desc'};
+let slPosFilter='ALL';
+let slSearch='';
+
+function getAllPlayers(){
+  const rows=[];
+  Object.entries(REPORTS).forEach(([compId,reps])=>{
+    const comp=DATA.find(c=>c.id===parseInt(compId));
+    const compName=comp?comp.name:'—';
+    (reps||[]).forEach(r=>{
+      rows.push({...r,_compId:parseInt(compId),_compName:compName});
+    });
+  });
+  return rows;
+}
+
+function slSortFn(a,b){
+  const col=slSort.col;
+  const dir=slSort.dir==='asc'?1:-1;
+  const recOrder={A:4,B:3,C:2,D:1,'':-1};
+  const prioOrder={High:3,Medium:2,Low:1,'':-1};
+  let av,bv;
+  if(col==='nota'){av=parseFloat(a.nota)||0;bv=parseFloat(b.nota)||0;}
+  else if(col==='rec'){av=recOrder[a.rec]||0;bv=recOrder[b.rec]||0;}
+  else if(col==='prio'){av=prioOrder[a.prio]||0;bv=prioOrder[b.prio]||0;}
+  else if(col==='age'){
+    const age=s=>{if(!s)return 0;const d=new Date(s+'T12:00:00'),t=new Date();let a=t.getFullYear()-d.getFullYear();if(t.getMonth()-d.getMonth()<0||(t.getMonth()-d.getMonth()===0&&t.getDate()<d.getDate()))a--;return a;};
+    av=age(a.dob);bv=age(b.dob);
+  }
+  else if(col==='alt'){av=parseFloat(a.alt)||0;bv=parseFloat(b.alt)||0;}
+  else{av=(a[col]||'').toLowerCase();bv=(b[col]||'').toLowerCase();return av<bv?-dir:av>bv?dir:0;}
+  return (av-bv)*dir;
+}
+
+function renderShortlist(){
+  let players=getAllPlayers();
+
+  // Build position filter options
+  const positions=[...new Set(players.map(p=>p.pos||'').filter(Boolean))].sort();
+
+  // Apply filters
+  if(slPosFilter!=='ALL') players=players.filter(p=>p.pos===slPosFilter);
+  if(slSearch){
+    const q=slSearch.toLowerCase();
+    players=players.filter(p=>(p.nome||'').toLowerCase().includes(q)||(p.clube||'').toLowerCase().includes(q)||(p.nac||'').toLowerCase().includes(q)||(p._compName||'').toLowerCase().includes(q));
+  }
+
+  // Sort
+  players=[...players].sort(slSortFn);
+
+  const total=players.length;
+
+  // Column definitions
+  const cols=[
+    {id:'photo',  label:'',         sortable:false},
+    {id:'nome',   label:'Player',   sortable:true},
+    {id:'pos',    label:'Pos',      sortable:true},
+    {id:'age',    label:'Age',      sortable:true},
+    {id:'alt',    label:'Height',   sortable:true},
+    {id:'pe',     label:'Foot',     sortable:true},
+    {id:'nota',   label:'Score',    sortable:true},
+    {id:'rec',    label:'Rec.',     sortable:true},
+    {id:'prio',   label:'Priority', sortable:true},
+    {id:'_compName',label:'Competition',sortable:true},
+    {id:'scout',  label:'Scout',    sortable:true},
+    {id:'forcas', label:'Strengths',sortable:false},
+  ];
+
+  function thClass(col){
+    if(!col.sortable) return '';
+    if(slSort.col===col.id) return slSort.dir==='asc'?'sort-asc':'sort-desc';
+    return '';
+  }
+
+  const calcAge=s=>{if(!s)return'—';const d=new Date(s+'T12:00:00'),t=new Date();let a=t.getFullYear()-d.getFullYear();if(t.getMonth()-d.getMonth()<0||(t.getMonth()-d.getMonth()===0&&t.getDate()<d.getDate()))a--;return a+'a';};
+  const scoreColor=n=>{const v=parseFloat(n)||0;return v>=8?'#1a8040':v>=6?'#b8860b':'#c00';};
+  const recLabel={A:'A — Sign',B:'B — Monitor',C:'C — Watch',D:'D — Pass'};
+
+  const rows=players.map(r=>`
+    <tr onclick="openShortlistPlayer(${r._compId},'${r.id}')" title="Click to view full report">
+      <td style="padding:3px 6px;width:38px">
+        ${r.photo
+          ?`<img src="${r.photo}" class="sl-photo">`
+          :`<div class="sl-photo-ph">👤</div>`}
+      </td>
+      <td style="min-width:160px;padding:4px 8px">
+        <div class="sl-name">${r.nome||'—'}</div>
+        <div class="sl-sub">${r.clube||'—'}</div>
+      </td>
+      <td style="text-align:center;width:40px"><span class="sl-pos">${r.pos||'—'}</span></td>
+      <td style="text-align:center;width:36px;color:#5f5e5a">${calcAge(r.dob)}</td>
+      <td style="text-align:center;width:48px;color:#5f5e5a">${r.alt?r.alt+' cm':'—'}</td>
+      <td style="text-align:center;width:40px;color:#5f5e5a">${r.pe||'—'}</td>
+      <td style="text-align:center;width:44px"><span class="sl-score" style="color:${scoreColor(r.nota)}">${r.nota||'—'}</span></td>
+      <td style="text-align:center;width:80px">${r.rec?`<span class="sl-rec ${r.rec}">${recLabel[r.rec]||r.rec}</span>`:''}</td>
+      <td style="width:64px"><span class="sl-prio ${r.prio||''}">${r.prio||'—'}</span></td>
+      <td style="min-width:140px;font-size:10px;color:#5f5e5a;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r._compName}</td>
+      <td style="width:64px;font-size:10px;color:#5f5e5a">${r.scout||'—'}</td>
+      <td style="min-width:120px;font-size:10px;color:#5f5e5a;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(r.forcas||'').replace(/\n/g,', ')}</td>
+    </tr>`).join('');
+
+  const emptyRow=`<tr><td colspan="12" style="padding:40px;text-align:center;color:#888780">No players found</td></tr>`;
+
+  const filterBtns=['ALL',...positions].map(p=>`<button class="shortlist-filter${slPosFilter===p?' active':''}" onclick="slSetPos('${p}')">${p==='ALL'?'All Positions':p}</button>`).join('');
+
+  return `<div class="view active">
+    <div class="toolbar">
+      <div><h1>⭐ Shortlist — All Players</h1><p>Aggregated from all competitions · Click any row to view full report</p></div>
+    </div>
+    <div class="shortlist-wrap">
+      <div class="shortlist-controls">
+        ${filterBtns}
+        <input class="shortlist-search" type="text" placeholder="Search player, club, competition…" value="${slSearch}" oninput="slSetSearch(this.value)">
+        <span class="shortlist-count">${total} player${total!==1?'s':''}</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="sl">
+        <thead><tr>
+          ${cols.map(c=>`<th class="${thClass(c)}" ${c.sortable?`onclick="slSetSort('${c.id}')"`:''}>${c.label}</th>`).join('')}
+        </tr></thead>
+        <tbody>${players.length?rows:emptyRow}</tbody>
+      </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+function slSetSort(col){
+  if(slSort.col===col) slSort.dir=slSort.dir==='asc'?'desc':'asc';
+  else{slSort.col=col;slSort.dir=col==='nota'||col==='rec'||col==='prio'?'desc':'asc';}
+  if(currentView==='shortlist') document.getElementById('views').innerHTML=renderShortlist();
+}
+
+function slSetPos(pos){
+  slPosFilter=pos;
+  if(currentView==='shortlist') document.getElementById('views').innerHTML=renderShortlist();
+}
+
+function slSetSearch(val){
+  slSearch=val;
+  if(currentView==='shortlist') document.getElementById('views').innerHTML=renderShortlist();
+}
+
+function openShortlistPlayer(compId,repId){
+  openModal(compId);
+  // Wait for modal to open then switch to the specific report
+  setTimeout(()=>{
+    switchMTab('list');
+    // Scroll to the specific report card
+    setTimeout(()=>{
+      const el=document.getElementById('rc_'+repId);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    },100);
+  },50);
+}
+
 
 function renderResumo(){
   const calcs=SCOUTS.map(scout=>{
